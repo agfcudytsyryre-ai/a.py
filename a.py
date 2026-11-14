@@ -136,28 +136,40 @@ def parse_timer_seconds(timer_str):
         return int(timer_str)
     return 10
 
-# =============== مساعد الأزرار (تمت إزالة style لمنع التعليق) ===============
+# =============== مساعد الألوان (تمت إعادتها) ===============
+def get_btn_style(chat_id, color):
+    if not get_user_colors_enabled(chat_id):
+        return None
+    if color in ["primary", "success", "danger"]:
+        return color
+    return None
+
 def make_btn(chat_id, text, data, color=None):
-    # تمت إزالة style=get_btn_style لتجنب الأخطاء
+    style = get_btn_style(chat_id, color)
+    if style:
+        return Button.inline(text, data=data, style=style)
     return Button.inline(text, data=data)
 
 def make_url_btn(chat_id, text, url, color=None):
-    # تمت إزالة style=get_btn_style لتجنب الأخطاء
+    style = get_btn_style(chat_id, color)
+    if style:
+        return Button.url(text, url, style=style)
     return Button.url(text, url)
 
+# =============== الأزرار ===============
 def main_keyboard(chat_id=None):
     colors_enabled = get_user_colors_enabled(chat_id) if chat_id is not None else True
     
     buttons = [
-        [make_btn(chat_id, "حساباتي 👨‍💻", b"accounts"), make_btn(chat_id, "السوبرات الحالية 🐣", b"current_super")],
-        [make_btn(chat_id, "إضافة سوبر 🐥", b"add_super"), make_btn(chat_id, "رسائل النشر 🐥", b"post_msg")],
-        [make_btn(chat_id, "ضبط مدة النشر 🧑‍🍳", b"timer"), make_btn(chat_id, "إيقاف النشر 🍿", b"stop_post")],
-        [make_btn(chat_id, "بدء النشر 🐥", b"start_post"), make_btn(chat_id, "الردود 🧑‍🏫", b"replies")],
-        [make_btn(chat_id, "تخزين 📻", b"storage"), make_btn(chat_id, "إطفاء الألوان 🌸" if colors_enabled else "تشغيل الألوان 🌸", b"toggle_colors")],
-        [make_url_btn(chat_id, "المطوّر 🐥", "https://t.me/u_8_y")]
+        [make_btn(chat_id, "حساباتي 👨‍💻", b"accounts", "primary"), make_btn(chat_id, "السوبرات الحالية 🐣", b"current_super", "primary")],
+        [make_btn(chat_id, "إضافة سوبر 🐥", b"add_super", "danger"), make_btn(chat_id, "رسائل النشر 🐥", b"post_msg", "danger")],
+        [make_btn(chat_id, "ضبط مدة النشر 🧑‍🍳", b"timer", "danger"), make_btn(chat_id, "إيقاف النشر 🍿", b"stop_post", "success")],
+        [make_btn(chat_id, "بدء النشر 🐥", b"start_post", "success"), make_btn(chat_id, "الردود 🧑‍🏫", b"replies", "primary")],
+        [make_btn(chat_id, "تخزين 📻", b"storage", "primary"), make_btn(chat_id, "إطفاء الألوان 🌸" if colors_enabled else "تشغيل الألوان 🌸", b"toggle_colors", "success")],
+        [make_url_btn(chat_id, "المطوّر 🐥", "https://t.me/u_8_y", "success")]
     ]
     if str(chat_id) == str(SUDO_ID):
-        buttons.insert(-1, [make_btn(chat_id, "لوحة التحكم ⚙️", b"admin_panel")])
+        buttons.insert(-1, [make_btn(chat_id, "لوحة التحكم ⚙️", b"admin_panel", "danger")])
     return buttons
 
 def replies_main_keyboard(chat_id):
@@ -165,28 +177,28 @@ def replies_main_keyboard(chat_id):
     welcome_msg = replies_db.get("welcome")
     status_text = "مفعل 🌸" if welcome_msg else "معطل 🥊"
     return [
-        [make_btn(chat_id, "الردود 👨‍🏫", b"list_replies"), make_btn(chat_id, "اضف رد 👨‍🏫", b"add_reply")],
-        [make_btn(chat_id, "حذف الترحيب 🐥", b"del_welcome"), make_btn(chat_id, "إضافة ترحيب 👨‍🏫", b"add_welcome")],
-        [make_btn(chat_id, "تجاهل شخص 🐥", b"add_ignore")],
-        [make_btn(chat_id, "الرئيسية 🧑‍🌾", b"go_home")]
+        [make_btn(chat_id, "الردود 👨‍🏫", b"list_replies", "success"), make_btn(chat_id, "اضف رد 👨‍🏫", b"add_reply", "success")],
+        [make_btn(chat_id, "حذف الترحيب 🐥", b"del_welcome", "primary"), make_btn(chat_id, "إضافة ترحيب 👨‍🏫", b"add_welcome", "danger")],
+        [make_btn(chat_id, "تجاهل شخص 🐥", b"add_ignore", "success")],
+        [make_btn(chat_id, "الرئيسية 🧑‍🌾", b"go_home", "success")]
     ], status_text
 
 def accounts_keyboard(chat_id):
     return [
-        [make_btn(chat_id, "إدارة الحسابات 🎨", b"manage_accs"), make_btn(chat_id, "إضافة حساب 📲", b"add_acc")],
-        [make_btn(chat_id, "الرئيسية 🐥", b"go_home")]
+        [make_btn(chat_id, "إدارة الحسابات 🎨", b"manage_accs", "primary"), make_btn(chat_id, "إضافة حساب 📲", b"add_acc", "success")],
+        [make_btn(chat_id, "الرئيسية 🐥", b"go_home", "danger")]
     ]
 
 def home_keyboard(chat_id):
-    return [[make_btn(chat_id, "الرئيسية 🐥", b"go_home")]]
+    return [[make_btn(chat_id, "الرئيسية 🐥", b"go_home", "primary")]]
 
 def post_status_keyboard(chat_id, show_stop=True):
     if show_stop:
-        return [[make_btn(chat_id, "إيقاف 🛑", b"stop_post"), make_btn(chat_id, "الرئيسية 🐥", b"go_home")]]
-    return [[make_btn(chat_id, "بدء 🥶", b"start_post"), make_btn(chat_id, "الرئيسية 🐥", b"go_home")]]
+        return [[make_btn(chat_id, "إيقاف 🛑", b"stop_post", "primary"), make_btn(chat_id, "الرئيسية 🐥", b"go_home", "danger")]]
+    return [[make_btn(chat_id, "بدء 🥶", b"start_post", "primary"), make_btn(chat_id, "الرئيسية 🐥", b"go_home", "success")]]
 
 def no_accounts_keyboard(chat_id):
-    return [[make_btn(chat_id, "إضافة حساب 🙋‍♂️", b"add_acc")], [make_btn(chat_id, "الرئيسية 🐥", b"go_home")]]
+    return [[make_btn(chat_id, "إضافة حساب 🙋‍♂️", b"add_acc", "danger")], [make_btn(chat_id, "الرئيسية 🐥", b"go_home", "danger")]]
 
 def build_groups_page(chat_id, page=0):
     groups = cached_groups.get(chat_id, [])
@@ -203,27 +215,27 @@ def build_groups_page(chat_id, page=0):
         is_private = g.get("is_private", False)
         
         if is_private:
-            group_btn = make_btn(chat_id, f"{title} 🔒", b"private_info")
+            group_btn = make_btn(chat_id, f"{title} 🔒", b"private_info", "primary")
         else:
             clean_user = identifier.replace("@", "")
-            group_btn = make_url_btn(chat_id, f"{title} 🐥", f"https://t.me/{clean_user}")
+            group_btn = make_url_btn(chat_id, f"{title} 🐥", f"https://t.me/{clean_user}", "primary")
             
         if identifier in added_identifiers:
-            action_btn = make_btn(chat_id, "حذف 🐥", f"remove_sup_{idx}_{page}".encode())
+            action_btn = make_btn(chat_id, "حذف 🐥", f"remove_sup_{idx}_{page}".encode(), "danger")
         else:
-            action_btn = make_btn(chat_id, "إضافة 🧑‍🍳", f"save_sup_{idx}_{page}".encode())
+            action_btn = make_btn(chat_id, "إضافة 🧑‍🍳", f"save_sup_{idx}_{page}".encode(), "success")
         buttons.append([group_btn, action_btn])
 
     nav_row = []
     if page > 0:
-        nav_row.append(make_btn(chat_id, "السابق ⬅️", f"page_{page - 1}".encode()))
+        nav_row.append(make_btn(chat_id, "السابق ⬅️", f"page_{page - 1}".encode(), "primary"))
     if end_idx < len(groups):
-        nav_row.append(make_btn(chat_id, "التالي 👩‍🦽", f"page_{page + 1}".encode()))
+        nav_row.append(make_btn(chat_id, "التالي 👩‍🦽", f"page_{page + 1}".encode(), "success"))
     if nav_row:
         buttons.append(nav_row)
 
-    buttons.append([make_btn(chat_id, "إضافة يدويًا 🧑‍🍳", b"manual_add_super")])
-    buttons.append([make_btn(chat_id, "الرئيسية 🐥", b"go_home")])
+    buttons.append([make_btn(chat_id, "إضافة يدويًا 🧑‍🍳", b"manual_add_super", "primary")])
+    buttons.append([make_btn(chat_id, "الرئيسية 🐥", b"go_home", "success")])
     return buttons
 
 async def safe_edit(event, text, buttons=None):
@@ -292,7 +304,6 @@ async def start_user_client_listener(chat_id, session_file, username):
                         await client_user.send_message(msg.chat_id, word_replies[text_lower], reply_to=msg.id)
                     else:
                         welcome = replies_db.get("welcome")
-                        # تم تعديل منطق الترحيب ليرد في كل محادثة جديدة
                         if welcome and not text_lower.startswith('/') and not is_reply:
                             await client_user.send_message(msg.chat_id, welcome, reply_to=msg.id)
 
@@ -393,7 +404,7 @@ async def reset_user_session(chat_id):
         user_clients.pop(chat_id, None)
     user_states.pop(chat_id, None)
 
-# =============== حلقة النشر المحسنة ===============
+# =============== حلقة النشر ===============
 async def publishing_loop(chat_id):
     print(f"[{chat_id}] 🚀 بدأ النشر التلقائي...")
     while True:
@@ -405,7 +416,7 @@ async def publishing_loop(chat_id):
             active_msgs = [m.get("text", "") if isinstance(m, dict) else str(m) for m in raw_msgs if (isinstance(m, dict) and m.get("active", True)) or isinstance(m, str)]
 
             if not user_supers or not active_msgs or not user_accs:
-                print(f"[{chat_id}] ⚠️ توقف النشر: (حسابات: {len(user_accs)}, سوبرات: {len(user_supers)}, رسائل: {len(active_msgs)})")
+                print(f"[{chat_id}] ⚠️ توقف النشر.")
                 break
 
             anti_ban = get_anti_ban(chat_id)
@@ -415,10 +426,8 @@ async def publishing_loop(chat_id):
                 pub_client = await _ensure_user_client(chat_id, acc)
                 
                 if not pub_client:
-                    print(f"[{chat_id}] ❌ تعذر الاتصال بـ {acc_name}")
                     continue
 
-                print(f"[{chat_id}] 🔄 بدء النشر من الحساب: {acc_name}")
                 for target in user_supers:
                     identifier = target.get("identifier") if isinstance(target, dict) else str(target)
                     msg_to_send = random.choice(active_msgs)
@@ -427,12 +436,10 @@ async def publishing_loop(chat_id):
                         target_param = int(identifier) if (identifier.startswith("-") or identifier.isdigit()) else identifier
                         entity = await pub_client.get_entity(target_param)
                         await pub_client.send_message(entity, msg_to_send)
-                        print(f"[{chat_id}] ✅ ({acc_name}) نشر في: {identifier}")
                     except FloodWaitError as e:
-                        print(f"[{chat_id}] ⚠️ ({acc_name}) حظر مؤقت {e.seconds} ثانية.")
                         await asyncio.sleep(e.seconds)
-                    except Exception as e:
-                        print(f"[{chat_id}] ❌ ({acc_name}) فشل في {identifier}: {e}")
+                    except Exception:
+                        pass
                     
                     delay = random.uniform(8, 15) if anti_ban else random.uniform(1.5, 3.5)
                     await asyncio.sleep(delay)
@@ -442,17 +449,14 @@ async def publishing_loop(chat_id):
 
             timer_str = get_user_timer(chat_id)
             wait_time = parse_timer_seconds(timer_str)
-            print(f"[{chat_id}] 💤 اكتملت الجولة. انتظار {wait_time} ثانية.")
             await asyncio.sleep(wait_time)
             
         except asyncio.CancelledError:
-            print(f"[{chat_id}] 🛑 تم إيقاف النشر.")
             break
-        except Exception as e:
-            print(f"[{chat_id}] ❌ خطأ في الحلقة: {e}")
+        except Exception:
             await asyncio.sleep(5)
 
-# =============== الإدارة والاشتراك الإجباري ===============
+# =============== الإدارة والاشتراك ===============
 def get_admin_settings():
     settings = load_db(SETTINGS_FILE)
     if not isinstance(settings, dict): settings = {}
@@ -481,8 +485,8 @@ def force_sub_keyboard(chat_id):
     for ch in get_force_sub_channels():
         link = ch.get("link")
         title = ch.get("title") or ch.get("username") or "القناة"
-        if link: rows.append([make_url_btn(chat_id, f"الاشتراك في {title} 📢", link)])
-    rows.append([make_btn(chat_id, "تحقق من الاشتراك ✅", b"check_subscription")])
+        if link: rows.append([make_url_btn(chat_id, f"الاشتراك في {title} 📢", link, "primary")])
+    rows.append([make_btn(chat_id, "تحقق من الاشتراك ✅", b"check_subscription", "success")])
     return rows
 
 def admin_panel_keyboard(chat_id):
@@ -491,11 +495,11 @@ def admin_panel_keyboard(chat_id):
     channels = s.get("__force_sub_channels__", [])
     photo = s.get("__start_photo__")
     return [
-        [make_btn(chat_id, "الاشتراك الإجباري: مفعل 🟢" if enabled else "الاشتراك الإجباري: معطل 🔴", b"admin_toggle_force_sub")],
-        [make_btn(chat_id, f"قنوات الاشتراك ({len(channels)}) 📢", b"admin_channels"), make_btn(chat_id, "إضافة قناة ➕", b"admin_add_channel")],
-        [make_btn(chat_id, "تعيين صورة البداية 🖼️", b"admin_set_image"), make_btn(chat_id, "حذف صورة البداية 🗑️", b"admin_del_image")],
-        [make_btn(chat_id, "حالة صورة البداية: موجودة ✅" if photo else "حالة صورة البداية: غير موجودة ❌", b"admin_noop")],
-        [make_btn(chat_id, "الرئيسية 🐥", b"go_home")]
+        [make_btn(chat_id, "الاشتراك الإجباري: مفعل 🟢" if enabled else "الاشتراك الإجباري: معطل 🔴", b"admin_toggle_force_sub", "success" if enabled else "danger")],
+        [make_btn(chat_id, f"قنوات الاشتراك ({len(channels)}) 📢", b"admin_channels", "primary"), make_btn(chat_id, "إضافة قناة ➕", b"admin_add_channel", "success")],
+        [make_btn(chat_id, "تعيين صورة البداية 🖼️", b"admin_set_image", "primary"), make_btn(chat_id, "حذف صورة البداية 🗑️", b"admin_del_image", "danger")],
+        [make_btn(chat_id, "حالة صورة البداية: موجودة ✅" if photo else "حالة صورة البداية: غير موجودة ❌", b"admin_noop", "primary")],
+        [make_btn(chat_id, "الرئيسية 🐥", b"go_home", "success")]
     ]
 
 def admin_channels_keyboard(chat_id):
@@ -504,12 +508,12 @@ def admin_channels_keyboard(chat_id):
     for idx, ch in enumerate(channels):
         title = ch.get("title") or ch.get("username") or str(ch.get("id"))
         if ch.get("link"):
-            btn = make_url_btn(chat_id, title, ch.get("link"))
+            btn = make_url_btn(chat_id, title, ch.get("link"), "primary")
         else:
-            btn = make_btn(chat_id, title, b"admin_noop")
-        rows.append([btn, make_btn(chat_id, "حذف 🗑️", f"admin_del_channel_{idx}".encode())])
-    rows.append([make_btn(chat_id, "إضافة قناة ➕", b"admin_add_channel")])
-    rows.append([make_btn(chat_id, "رجوع ⚙️", b"admin_panel")])
+            btn = make_btn(chat_id, title, b"admin_noop", "primary")
+        rows.append([btn, make_btn(chat_id, "حذف 🗑️", f"admin_del_channel_{idx}".encode(), "danger")])
+    rows.append([make_btn(chat_id, "إضافة قناة ➕", b"admin_add_channel", "success")])
+    rows.append([make_btn(chat_id, "رجوع ⚙️", b"admin_panel", "primary")])
     return rows
 
 async def send_start_screen(event):
@@ -527,7 +531,7 @@ async def send_start_screen(event):
     except Exception:
         await bot.send_message(chat_id, text, buttons=main_keyboard(chat_id), link_preview=False)
 
-# =============== دوال عرض الواجهات (تم فصلها لمنع تعليق الأزرار) ===============
+# =============== دوال عرض الواجهات ===============
 async def render_post_messages(event, chat_id):
     raw_msgs = load_db(MESSAGES_FILE).get(chat_id, [])
     user_msgs = [{"text": m, "active": True} if isinstance(m, str) else m for m in raw_msgs]
@@ -539,17 +543,17 @@ async def render_post_messages(event, chat_id):
         msg_text += f"- {i} | {st} | {m.get('text', '')}\n"
 
     anti_ban = get_anti_ban(chat_id)
-    buttons.append([make_btn(chat_id, "مانع الحظر يعمل 🧙‍♂️" if anti_ban else "مانع الحظر متوقف 🧙‍♂️", b"toggle_anti_ban")])
+    buttons.append([make_btn(chat_id, "مانع الحظر يعمل 🧙‍♂️" if anti_ban else "مانع الحظر متوقف 🧙‍♂️", b"toggle_anti_ban", "success" if anti_ban else "primary")])
 
     for i in range(len(user_msgs)):
         st = "تعطيل 🧑‍🌾" if user_msgs[i].get("active", True) else "تفعيل 🧙‍♂️"
         buttons.append([
-            make_btn(chat_id, "حذف 🧑‍🌾", f"del_msg_{i}".encode()),
-            make_btn(chat_id, "تعديل 🧑‍🍳", f"edit_msg_{i}".encode()),
+            make_btn(chat_id, "حذف 🧑‍🌾", f"del_msg_{i}".encode(), "primary"),
+            make_btn(chat_id, "تعديل 🧑‍🍳", f"edit_msg_{i}".encode(), "success"),
             make_btn(chat_id, st, f"toggle_msg_{i}".encode())
         ])
-    buttons.append([make_btn(chat_id, "إضافة رسالة 🐥", b"add_post_msg")])
-    buttons.append([make_btn(chat_id, "الرئيسية 🐥", b"go_home")])
+    buttons.append([make_btn(chat_id, "إضافة رسالة 🐥", b"add_post_msg", "danger")])
+    buttons.append([make_btn(chat_id, "الرئيسية 🐥", b"go_home", "danger")])
     
     await safe_edit(event, msg_text, buttons)
 
@@ -570,11 +574,11 @@ async def render_current_supers(event, chat_id):
                 title = ident
                 is_priv = ident.startswith("-")
             if is_priv or not ident.startswith("@"):
-                gb = make_btn(chat_id, f"{title} 🔒", b"private_info")
+                gb = make_btn(chat_id, f"{title} 🔒", b"private_info", "primary")
             else:
-                gb = make_url_btn(chat_id, f"{title} 🐥", f"https://t.me/{ident.replace('@', '')}")
-            buttons.append([gb, make_btn(chat_id, "حذف 🧙‍♂️", f"del_super_{ident}".encode())])
-        buttons.append([make_btn(chat_id, "العودة 🐥", b"go_home")])
+                gb = make_url_btn(chat_id, f"{title} 🐥", f"https://t.me/{ident.replace('@', '')}", "primary")
+            buttons.append([gb, make_btn(chat_id, "حذف 🧙‍♂️", f"del_super_{ident}".encode(), "primary")])
+        buttons.append([make_btn(chat_id, "العودة 🐥", b"go_home", "danger")])
         await safe_edit(event, text, buttons)
 
 async def render_manage_accs(event, chat_id):
@@ -588,23 +592,23 @@ async def render_manage_accs(event, chat_id):
             u = a.get("username")
             text += f"- {u}\n"
             buttons.append([
-                make_btn(chat_id, "حذف 🧖‍♂️", f"del_{u}".encode()),
+                make_btn(chat_id, "حذف 🧖‍♂️", f"del_{u}".encode(), "success"),
                 make_btn(chat_id, f"الافتراضي ({u}) 🤠", f"set_def_{u}".encode())
             ])
-        buttons.append([make_btn(chat_id, "الرئيسية 🐥", b"go_home")])
+        buttons.append([make_btn(chat_id, "الرئيسية 🐥", b"go_home", "success")])
         await safe_edit(event, text, buttons)
 
 async def render_list_replies(event, chat_id):
     replies = load_db(REPLIES_FILE).get(chat_id, {}).get("word_replies", {})
     if not replies:
-        await safe_edit(event, "لا توجد ردود.", [[make_btn(chat_id, "العودة 🐥", b"replies")]])
+        await safe_edit(event, "لا توجد ردود.", [[make_btn(chat_id, "العودة 🐥", b"replies", "danger")]])
     else:
         text = "الردود:\n\n"
         buttons = []
         for w, r in replies.items():
             text += f"- ({w}) -> ({r})\n"
-            buttons.append([make_btn(chat_id, f"حذف ({w}) 🗑️", f"del_rep_{w}".encode())])
-        buttons.append([make_btn(chat_id, "العودة 🐥", b"replies")])
+            buttons.append([make_btn(chat_id, f"حذف ({w}) 🗑️", f"del_rep_{w}".encode(), "danger")])
+        buttons.append([make_btn(chat_id, "العودة 🐥", b"replies", "danger")])
         await safe_edit(event, text, buttons)
 
 async def render_replies_main(event, chat_id):
@@ -668,7 +672,7 @@ async def cancel_cmd(event):
     chat_id = str(event.chat_id)
     CURRENT_UI_USER_ID.set(chat_id)
     await reset_user_session(chat_id)
-    await event.respond("تم إلغاء العملية بنجاح. يمكنك البدء من جديد.", buttons=[[make_btn(chat_id, "العودة للرئيسية 🐥", b"go_home")]])
+    await event.respond("تم إلغاء العملية بنجاح. يمكنك البدء من جديد.", buttons=[[make_btn(chat_id, "العودة للرئيسية 🐥", b"go_home", "primary")]])
 
 
 @bot.on(events.CallbackQuery)
@@ -679,8 +683,6 @@ async def callback_handler(event):
     
     try:
         await event.answer()
-    except QueryIdInvalidError:
-        pass
     except Exception:
         pass
 
@@ -739,8 +741,6 @@ async def callback_handler(event):
             try: await event.delete()
             except Exception: pass
             await send_start_screen(event)
-        else:
-            pass
 
     elif data == "toggle_colors":
         colors_enabled = not get_user_colors_enabled(chat_id)
@@ -752,7 +752,7 @@ async def callback_handler(event):
 
     elif data == "storage":
         current_store = load_db(STORAGE_FILE).get(chat_id, "لا توجد مجموعة تخزين")
-        kb = [[make_btn(chat_id, "إنشاء مجموعة تخزين 📻", b"create_storage_group")], [make_btn(chat_id, "الرئيسية 🐥", b"go_home")]]
+        kb = [[make_btn(chat_id, "إنشاء مجموعة تخزين 📻", b"create_storage_group", "primary")], [make_btn(chat_id, "الرئيسية 🐥", b"go_home", "danger")]]
         await safe_edit(event, f"قسم التخزين 📻\n\n`{current_store}`", kb)
 
     elif data == "create_storage_group":
@@ -947,17 +947,20 @@ async def callback_handler(event):
         if not load_db(DB_FILE).get(chat_id, []):
             return await safe_edit(event, "⚠️ أضف حساباً أولاً.", no_accounts_keyboard(chat_id))
         
-        await safe_edit(event, "جاري جلب السوبرات في الخلفية.. 🛡️✨ (البوت لن يتجمد)")
+        await safe_edit(event, "⏳ جاري جلب السوبرات في الخلفية.. (قد يستغرق دقيقة)")
         
         async def do_fetch():
-            fetched = await fetch_and_cache_groups(chat_id)
             try:
+                # إضافة مؤقت 60 ثانية لمنع التعليق
+                fetched = await asyncio.wait_for(fetch_and_cache_groups(chat_id), timeout=60.0)
                 if not fetched:
-                    await event.respond("لم يتم العثور على مجموعات.", buttons=home_keyboard(chat_id))
+                    await event.respond("⚠️ لم يتم العثور على مجموعات، أو أن الحساب عليه قيود. تأكد من الحساب وحاول مجدداً.", buttons=home_keyboard(chat_id))
                 else:
                     await event.respond("😷 اختر المجموعة:", buttons=build_groups_page(chat_id, 0))
-            except Exception:
-                pass
+            except asyncio.TimeoutError:
+                await event.respond("⚠️ استغرق جلب المجموعات وقتاً طويلاً. يرجى المحاولة لاحقاً أو التحقق من اتصال الحساب.", buttons=home_keyboard(chat_id))
+            except Exception as e:
+                await event.respond(f"❌ حدث خطأ أثناء الجلب: {e}", buttons=home_keyboard(chat_id))
                 
         asyncio.create_task(do_fetch())
 
@@ -1101,7 +1104,7 @@ async def message_handler(event):
         mdb.setdefault(chat_id, []).append({"text": event.raw_text.strip(), "active": True})
         save_db(mdb, MESSAGES_FILE)
         n = len(mdb[chat_id])
-        await event.respond(f"تمت الإضافة #{n}", buttons=[[make_btn(chat_id, "العودة 🐥", b"back_to_post_msg")]])
+        await event.respond(f"تمت الإضافة #{n}", buttons=[[make_btn(chat_id, "العودة 🐥", b"back_to_post_msg", "primary")]])
         user_states.pop(chat_id, None)
 
     elif state == "waiting_edit_msg":
@@ -1114,7 +1117,7 @@ async def message_handler(event):
             else:
                 msgs[idx]["text"] = event.raw_text.strip()
             save_db(mdb, MESSAGES_FILE)
-            await event.respond(f"تم تعديل #{idx + 1}", buttons=[[make_btn(chat_id, "العودة 🐥", b"back_to_post_msg")]])
+            await event.respond(f"تم تعديل #{idx + 1}", buttons=[[make_btn(chat_id, "العودة 🐥", b"back_to_post_msg", "primary")]])
         user_states.pop(chat_id, None)
 
     elif state == "waiting_timer":
@@ -1175,7 +1178,18 @@ async def message_handler(event):
             user_clients[chat_id] = {"client": uc, "phone": phone, "phone_code_hash": sent.phone_code_hash, "session_file": session_file}
             user_states[chat_id] = {"step": "waiting_code"}
             
-            await event.respond("وصلك الكود 🐥\n\nأرسل **الأرقام فقط** (مثال: 12345).\n\n⚠️ **تنبيه:** إذا أخطأت في الكود، يجب أن ترسل `/cancel` وتعيد المحاولة من جديد.")
+            # تنسيق رسالة الكود بشكل جميل ومرتب
+            code_msg = (
+                "╭───────────────╮\n"
+                "   📩 **وصلك الكود** 📩\n"
+                "╰───────────────╯\n\n"
+                "🔢 **أرسل الأرقام فقط** (بدون مسافات)\n"
+                "مثال: `12345`\n\n"
+                "⚠️ **تنبيه هام:**\n"
+                "إذا أخطأت في إدخال الكود، يرجى إرسال الأمر `/cancel`\n"
+                "ثم أعد المحاولة من جديد."
+            )
+            await event.respond(code_msg)
         except ApiIdInvalidError:
             await event.respond("❌ الـ API_ID الخاص بالبوت غير صالح! يرجى مراجعة المطور.")
             user_states.pop(chat_id, None)
@@ -1308,7 +1322,7 @@ async def finalize_login(chat_id, tl_client, event):
 
         try: await tl_client.disconnect()
         except Exception: pass
-        await asyncio.sleep(0.3)
+        await asyncio.sleep(1.5) # زيادة وقت الانتظار قبل تشغيل المستمع
 
         await start_user_client_listener(chat_id, session_file, display_username)
 
