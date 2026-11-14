@@ -17,7 +17,7 @@ from telethon.errors import (
 
 logging.getLogger("telethon").setLevel(logging.ERROR)
 
-BOT_TOKEN = "8851309353:AAFgr_aRLPLAEkvEukz3C5GBUtUa2ed_Zes"
+BOT_TOKEN = "8754968873:AAGqmr7_a1RB4fW3uij1Sm91z1kdAbvgymM"
 API_ID = 20939124
 API_HASH = "0c375ccd4809417e19c8fe252290dba5"
 SUDO_ID = 1920665874   # ← المطور
