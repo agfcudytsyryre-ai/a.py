@@ -33,7 +33,6 @@ USERS_FILE = "users_data.json"
 COLORS_USERS_KEY = "__colors_users__"
 CURRENT_UI_USER_ID = ContextVar("current_ui_user_id", default=None)
 
-# تهيئة عميل البوت (Telethon)
 bot = TelegramClient("main_bot_session", API_ID, API_HASH)
 
 def _get_session_file(chat_id, phone=None):
@@ -136,7 +135,7 @@ def parse_timer_seconds(timer_str):
         return int(timer_str)
     return 10
 
-# =============== مساعد الألوان (تمت إعادتها) ===============
+# =============== مساعد الألوان ===============
 def get_btn_style(chat_id, color):
     if not get_user_colors_enabled(chat_id):
         return None
@@ -156,7 +155,7 @@ def make_url_btn(chat_id, text, url, color=None):
         return Button.url(text, url, style=style)
     return Button.url(text, url)
 
-# =============== الأزرار ===============
+# =============== لوحات المفاتيح ===============
 def main_keyboard(chat_id=None):
     colors_enabled = get_user_colors_enabled(chat_id) if chat_id is not None else True
     
@@ -249,7 +248,7 @@ async def safe_edit(event, text, buttons=None):
         except Exception:
             pass
 
-# =============== إدارة الحسابات (Telethon) ===============
+# =============== إدارة الحسابات ===============
 async def start_user_client_listener(chat_id, session_file, username):
     if chat_id not in active_user_clients:
         active_user_clients[chat_id] = {}
@@ -416,7 +415,7 @@ async def publishing_loop(chat_id):
             active_msgs = [m.get("text", "") if isinstance(m, dict) else str(m) for m in raw_msgs if (isinstance(m, dict) and m.get("active", True)) or isinstance(m, str)]
 
             if not user_supers or not active_msgs or not user_accs:
-                print(f"[{chat_id}] ⚠️ توقف النشر.")
+                print(f"[{chat_id}] ⚠️ توقف النشر: لا توجد حسابات، سوبرات، أو رسائل مفعلة.")
                 break
 
             anti_ban = get_anti_ban(chat_id)
@@ -426,8 +425,10 @@ async def publishing_loop(chat_id):
                 pub_client = await _ensure_user_client(chat_id, acc)
                 
                 if not pub_client:
+                    print(f"[{chat_id}] ❌ الحساب ({acc_name}) غير متصل، سيتم تخطيه.")
                     continue
 
+                print(f"[{chat_id}] 🔄 بدء النشر من الحساب: {acc_name}")
                 for target in user_supers:
                     identifier = target.get("identifier") if isinstance(target, dict) else str(target)
                     msg_to_send = random.choice(active_msgs)
@@ -436,24 +437,31 @@ async def publishing_loop(chat_id):
                         target_param = int(identifier) if (identifier.startswith("-") or identifier.isdigit()) else identifier
                         entity = await pub_client.get_entity(target_param)
                         await pub_client.send_message(entity, msg_to_send)
+                        print(f"[{chat_id}] ✅ ({acc_name}) نشر في: {identifier}")
                     except FloodWaitError as e:
+                        print(f"[{chat_id}] ⏳ حظر مؤقت من تليجرام، انتظار {e.seconds} ثانية.")
                         await asyncio.sleep(e.seconds)
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        print(f"[{chat_id}] ❌ ({acc_name}) فشل في {identifier}: {e}")
                     
+                    # إذا كان مانع الحظر شغال، ينتظر وقت طويل، وإذا كان مطفي ينتظر 1.5 إلى 3.5 ثانية
                     delay = random.uniform(8, 15) if anti_ban else random.uniform(1.5, 3.5)
                     await asyncio.sleep(delay)
 
+                # انتظار بين الحسابات
                 delay_acc = random.uniform(15, 30) if anti_ban else random.uniform(2, 4)
                 await asyncio.sleep(delay_acc)
 
             timer_str = get_user_timer(chat_id)
             wait_time = parse_timer_seconds(timer_str)
+            print(f"[{chat_id}] 💤 اكتملت الجولة. انتظار {wait_time} ثانية قبل الجولة القادمة.")
             await asyncio.sleep(wait_time)
             
         except asyncio.CancelledError:
+            print(f"[{chat_id}] 🛑 تم إيقاف النشر.")
             break
-        except Exception:
+        except Exception as e:
+            print(f"[{chat_id}] ❌ خطأ في الحلقة: {e}")
             await asyncio.sleep(5)
 
 # =============== الإدارة والاشتراك ===============
@@ -616,7 +624,7 @@ async def render_replies_main(event, chat_id):
     await safe_edit(event, f"الردود التلقائية 😎\nترتيب الخاص: {status}", kb)
 
 
-# =============== معالجة الأحداث (Events) ===============
+# =============== معالجة الأحداث ===============
 
 @bot.on(events.NewMessage(pattern='/start'))
 async def start_cmd(event):
@@ -657,14 +665,6 @@ async def start_cmd(event):
                 asyncio.create_task(start_user_client_listener(chat_id, sf, uname))
 
     await send_start_screen(event)
-
-@bot.on(events.NewMessage(pattern='/admin'))
-async def admin_cmd(event):
-    if not event.is_private: return
-    chat_id = str(event.chat_id)
-    CURRENT_UI_USER_ID.set(chat_id)
-    if str(event.sender_id) != str(SUDO_ID): return
-    await event.respond("⚙️ لوحة تحكم البوت\n\nمن هنا تقدر تدير الاشتراك الإجباري وصورة البداية.", buttons=admin_panel_keyboard(chat_id))
 
 @bot.on(events.NewMessage(pattern='/cancel'))
 async def cancel_cmd(event):
@@ -741,6 +741,9 @@ async def callback_handler(event):
             try: await event.delete()
             except Exception: pass
             await send_start_screen(event)
+
+    elif data == "resend_code":
+        await event.answer("⚠️ لا يمكن إعادة إرسال الكود فوراً. يرجى إرسال /cancel ثم المحاولة مجدداً بعد قليل.", alert=True)
 
     elif data == "toggle_colors":
         colors_enabled = not get_user_colors_enabled(chat_id)
@@ -941,7 +944,15 @@ async def callback_handler(event):
 
     elif data == "add_acc":
         user_states[chat_id] = {"step": "waiting_phone"}
-        await safe_edit(event, "إضافة حساب جديد 🐥\n\nأرسل رقم الهاتف مع رمز الدولة (+964)\n\nللإلغاء /cancel")
+        
+        # التنسيق المطلوب بالضبط حسب الصورة
+        text = (
+            "إضافة حساب جديد 🐥\n\n"
+            "▪️ أرسل رقم الهاتف\n"
+            "▪️ إذا أردت الإلغاء، أرسل /cancel\n\n"
+            "أدخل رقم الهاتف مع رمز الدولة (+964):"
+        )
+        await safe_edit(event, text, home_keyboard(chat_id))
 
     elif data == "add_super":
         if not load_db(DB_FILE).get(chat_id, []):
@@ -951,7 +962,6 @@ async def callback_handler(event):
         
         async def do_fetch():
             try:
-                # إضافة مؤقت 60 ثانية لمنع التعليق
                 fetched = await asyncio.wait_for(fetch_and_cache_groups(chat_id), timeout=60.0)
                 if not fetched:
                     await event.respond("⚠️ لم يتم العثور على مجموعات، أو أن الحساب عليه قيود. تأكد من الحساب وحاول مجدداً.", buttons=home_keyboard(chat_id))
@@ -1164,7 +1174,7 @@ async def message_handler(event):
             try: await old["client"].disconnect()
             except Exception: pass
 
-        await event.respond("جاري إرسال كود التحقق.. 🧑‍🍳")
+        await event.respond("جاري إرسال كود التحقق... 🧑‍🍳")
         session_file = _get_session_file(chat_id, phone)
 
         uc = TelegramClient(session_file, API_ID, API_HASH)
@@ -1178,18 +1188,9 @@ async def message_handler(event):
             user_clients[chat_id] = {"client": uc, "phone": phone, "phone_code_hash": sent.phone_code_hash, "session_file": session_file}
             user_states[chat_id] = {"step": "waiting_code"}
             
-            # تنسيق رسالة الكود بشكل جميل ومرتب
-            code_msg = (
-                "╭───────────────╮\n"
-                "   📩 **وصلك الكود** 📩\n"
-                "╰───────────────╯\n\n"
-                "🔢 **أرسل الأرقام فقط** (بدون مسافات)\n"
-                "مثال: `12345`\n\n"
-                "⚠️ **تنبيه هام:**\n"
-                "إذا أخطأت في إدخال الكود، يرجى إرسال الأمر `/cancel`\n"
-                "ثم أعد المحاولة من جديد."
-            )
-            await event.respond(code_msg)
+            # التنسيق المطلوب بالضبط حسب الصورة
+            markup = [[Button.inline("لم يصلني الكود 🧹", data="resend_code")]]
+            await event.respond("تم إرسال كود التحقق. يرجى إدخاله الآن بهذا الشكل (5 4 3 2 1) فقط", buttons=markup)
         except ApiIdInvalidError:
             await event.respond("❌ الـ API_ID الخاص بالبوت غير صالح! يرجى مراجعة المطور.")
             user_states.pop(chat_id, None)
@@ -1322,7 +1323,7 @@ async def finalize_login(chat_id, tl_client, event):
 
         try: await tl_client.disconnect()
         except Exception: pass
-        await asyncio.sleep(1.5) # زيادة وقت الانتظار قبل تشغيل المستمع
+        await asyncio.sleep(1.5)
 
         await start_user_client_listener(chat_id, session_file, display_username)
 
